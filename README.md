@@ -213,7 +213,19 @@ results = decoder.decode(
 
 ---
 
-## 六、文件一览
+## 六、真值格式与 DataLoader
+
+训练时模型需要 **metas** 中的检测真值（与可选跟踪真值），且 **list 长度 = B×T**（与 head 收到的帧数一致）。  
+**真值应包含的内容、各字段形状、以及 DataLoader 如何组 batch 才能直接喂给 model**，见 **[DATA_FORMAT.md](DATA_FORMAT.md)**，其中包括：
+
+- 检测：`gt_labels_3d`（list  of 类别下标）、`gt_bboxes_3d`（list of 解码格式 10 维框）
+- 跟踪：`gt_track_match`（B,T,N）当前帧 slot i 对应上一帧 slot j，-1 表示无匹配
+- 从“每帧 GT 框 + track_id”构造 `gt_track_match` 的步骤
+- 示例 `collate_fn` 与训练循环调用方式
+
+---
+
+## 七、文件一览
 
 ```
 sparse4d_bev_torch/
@@ -229,12 +241,13 @@ sparse4d_bev_torch/
 ├── track_head.py         # TrackHead、track_affinity_loss、decode_track、align_anchors_to_frame
 ├── model.py              # build_* 与 Sparse4DBEVModel
 ├── bev_backbone.py       # 可选 BEV backbone 参考实现
+├── DATA_FORMAT.md        # 真值格式与 DataLoader 输出约定
 └── README.md             # 本说明
 ```
 
 ---
 
-## 七、快速自测（检测 + 跟踪 + loss + decode）
+## 八、快速自测（检测 + 跟踪 + loss + decode）
 
 在项目根目录（能 `import sparse4d_bev_torch`）下运行下面脚本，可验证一次 forward 同时得到检测/跟踪输出、检测 loss、跟踪 loss 以及推理时的 track_ids / positions（使用 dummy backbone 与假 GT）：
 
